@@ -36,7 +36,13 @@ exports.signin = async (req, res) => {
         if (!response.comparePassword(req.body.password)) {
             return res.status(401).json({ message: 'Authentication failed. Invalid password' });
         }
-        return res.json({ token: jwt.sign({ email: response.email, username: response.username, _id: response._id }, process.env.JWT_SECRET_KEY) });
+        return res.json({
+            token: jwt.sign({
+                email: response.email,
+                username: response.username,
+                id: response._id
+            }, process.env.JWT_SECRET_KEY, { expiresIn: '2 days' })
+        });
     } catch (error) {
         return res.status(401).json({ message: error?.message });
     }
