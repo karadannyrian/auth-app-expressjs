@@ -6,6 +6,8 @@ var express = require('express'),
 
 
     User = require('./api/models/userModel'),
+    Profile = require('./api/models/profileModel'),
+    Role = require('./api/models/roleModel'),
     bodyParser = require('body-parser'),
     jsonwebtoken = require("jsonwebtoken");
 
@@ -41,8 +43,10 @@ app.use(function (req, res, next) {
         next();
     }
 });
-var routes = require('./api/routes/userRoutes');
-routes(app);
+var routesUser = require('./api/routes/userRoutes');
+var roleUser = require('./api/routes/roleRoutes');
+routesUser(app);
+roleUser(app);
 
 app.use(function (req, res) {
     res.status(404).send({ url: req.originalUrl + ' not found' })

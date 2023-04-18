@@ -1,6 +1,6 @@
 'use strict';
 module.exports = function (app) {
-    var userHandlers = require('../controllers/userController.js');
+    const userHandlers = require('../controllers/userController.js');
     // todoList Routes
     app.route('/user/getByID/:id')
         .get(userHandlers.loginRequired, userHandlers.getByID)

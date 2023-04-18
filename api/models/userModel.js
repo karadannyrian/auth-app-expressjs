@@ -24,6 +24,10 @@ var UserSchema = new Schema({
     hash_password: {
         type: String
     },
+    roles: {
+        type: Array,
+        default: ['public']
+    },
     created: {
         type: Date,
         default: Date.now

@@ -5,7 +5,8 @@ const { ObjectId } = require('bson');
 var mongoose = require('mongoose'),
     jwt = require('jsonwebtoken'),
     bcrypt = require('bcrypt'),
-    User = mongoose.model('User');
+    User = mongoose.model('User'),
+    Profile = mongoose.model('Profile');
 
 
 const setPayload = (req) => {
@@ -16,11 +17,23 @@ const setPayload = (req) => {
 }
 
 exports.register = async (req, res) => {
-    var newUser = new User(req.body);
+    const newUser = new User(req.body);
     newUser.hash_password = bcrypt.hashSync(req.body.password, 10);
     try {
         const response = await newUser.save()
-        if (response) return res.status(201).send({ message: 'SUCCESS' })
+        if (response) {
+            const payload = {
+                userID: response._id,
+                fullname: req.body.fullname,
+                birthPlace: null,
+                birthDate: null,
+                phoneNumber: null,
+                imageUrl: null,
+            }
+            const newProfile = await new Profile(payload);
+            await newProfile.save()
+            return res.status(201).send({ message: 'SUCCESS' })
+        }
     } catch (error) {
         return res.status(400).send({ message: error.message })
     }
@@ -36,12 +49,19 @@ exports.signin = async (req, res) => {
         if (!response.comparePassword(req.body.password)) {
             return res.status(401).json({ message: 'Authentication failed. Invalid password' });
         }
+
+        let dataJwt = {
+            email: response.email,
+            username: response.username,
+            id: response._id,
+            roles: response.roles
+        }
+        const profile = await Profile.findOne({ userID: new ObjectId(response._id) })
+        if (profile) {
+            dataJwt = { ...dataJwt, ...profile._doc }
+        }
         return res.json({
-            token: jwt.sign({
-                email: response.email,
-                username: response.username,
-                id: response._id
-            }, process.env.JWT_SECRET_KEY, { expiresIn: '2 days' })
+            token: jwt.sign(dataJwt, process.env.JWT_SECRET_KEY, { expiresIn: '2 days' })
         });
     } catch (error) {
         return res.status(401).json({ message: error?.message });
